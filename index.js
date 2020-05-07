@@ -50,4 +50,7 @@ router
   })
   .get(/.*/, ctx => reverseProxy(ctx, ctx.path));
 
-app.use(router.routes()).use(router.allowedMethods()).listen(80);
+app
+  .use(router.routes())
+  .use(router.allowedMethods())
+  .listen(process.env.PORT || 8080);
