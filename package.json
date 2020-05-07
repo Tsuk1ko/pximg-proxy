@@ -1,5 +1,5 @@
 {
-  "name": "tsuk1ko-pximg-proxy",
+  "name": "heroku-pximg-proxy",
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
