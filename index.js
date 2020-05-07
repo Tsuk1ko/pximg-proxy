@@ -34,6 +34,7 @@ router
       paths.pop();
       return paths.join('/');
     })();
+    ctx.set('cache-control', 'max-age=3600');
     ctx.body = `Usage:
 
 1. ${baseURL}/{path}
@@ -57,7 +58,7 @@ router
       .then(({ data, status, headers }) => {
         ctx.body = data;
         ctx.status = status;
-        ctx.set('cache-control', 'max-age=31536000');
+        ctx.set('cache-control', 'max-age=604800');
         ['content-length', 'content-type', 'last-modified'].forEach(k => headers[k] && ctx.set(k, headers[k]));
       })
       .catch(() => {
