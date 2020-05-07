@@ -20,9 +20,9 @@ const reverseProxy = async (ctx, path) => {
   });
   ctx.body = data;
   ctx.status = status;
-  ['content-type', 'content-length', 'last-modified', 'expires', 'cache-control'].forEach(
-    k => headers[k] && ctx.set(k, headers[k])
-  );
+  ['content-type', 'content-length'].forEach(k => headers[k] && ctx.set(k, headers[k]));
+  if (status == 200) ['last-modified', 'expires', 'cache-control'].forEach(k => headers[k] && ctx.set(k, headers[k]));
+  else ctx.set('cache-control', 'no-cache');
 };
 
 router
@@ -40,6 +40,7 @@ router
     if (error) {
       ctx.body = message;
       ctx.status = status;
+      ctx.set('cache-control', 'no-cache');
       return;
     }
     const path = new URL(body.urls[size].replace('_p0', `_p${p}`)).pathname;
