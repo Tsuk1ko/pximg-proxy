@@ -1,0 +1,14 @@
+{
+  "name": "tsuk1ko-pximg-proxy",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^0.19.2",
+    "koa": "^2.11.0",
+    "koa-router": "^8.0.8"
+  }
+}
