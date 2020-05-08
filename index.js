@@ -1,9 +1,11 @@
 const { get } = require('axios');
 const Koa = require('koa');
 const Router = require('koa-router');
+const NodeCache = require('node-cache');
 
 const app = new Koa();
 const router = new Router();
+const illustCache = new NodeCache({ stdTTL: 600, checkperiod: 60, useClones: false });
 
 const pHeaders = {
   Referer: 'https://www.pixiv.net',
@@ -35,20 +37,7 @@ router
       return paths.join('/');
     })();
     ctx.set('cache-control', 'max-age=3600');
-    ctx.body = `Usage:
-
-1. ${baseURL}/{path}
-   - ${baseURL}/img-original/img/0000/00/00/00/00/00/12345678_p0.png
-
-2. ${baseURL}/{pid}[/{p}]
-   - ${baseURL}/12345678    (p0)
-   - ${baseURL}/12345678/0  (p0)
-   - ${baseURL}/12345678/1  (p1)
-
-3. ${baseURL}/(original|regular|small|thumb|mini)/{pid}[/{p}]
-   - ${baseURL}/original/12345678   (same as ${baseURL}/12345678)
-   - ${baseURL}/regular/12345678/1  (p1, master1200)
-`;
+    ctx.body = require('./pages/index')(baseURL);
   })
   .get('/favicon.ico', ctx => {
     return get('https://www.pixiv.net/favicon.ico', {
@@ -62,25 +51,30 @@ router
         ['content-length', 'content-type', 'last-modified'].forEach(k => headers[k] && ctx.set(k, headers[k]));
       })
       .catch(() => {
-        ctx.status = 404;
+        ctx.status = 502;
       });
   })
   .get(/^(?:\/(mini|original|regular|small|thumb))?\/(\d+)(?:\/(\d+))?/, async ctx => {
     const { 0: size = 'original', 1: pid, 2: p = 0 } = ctx.params;
-    const {
-      data: { error, message, body },
-      status,
-    } = await get(`https://www.pixiv.net/ajax/illust/${pid}`, {
-      headers: pHeaders,
-      validateStatus: () => true,
-    });
-    if (error) {
-      ctx.body = message;
-      ctx.status = status;
-      ctx.set('cache-control', 'no-cache');
-      return;
+    let urls = illustCache.get(pid);
+    if (!urls) {
+      const {
+        data: { error, message, body },
+        status,
+      } = await get(`https://www.pixiv.net/ajax/illust/${pid}`, {
+        headers: pHeaders,
+        validateStatus: () => true,
+      });
+      if (error) {
+        ctx.body = message;
+        ctx.status = status;
+        ctx.set('cache-control', 'no-cache');
+        return;
+      }
+      urls = body.urls;
+      illustCache.set(pid, urls);
     }
-    const path = new URL(body.urls[size].replace('_p0', `_p${p}`)).pathname;
+    const path = new URL(urls[size].replace('_p0', `_p${p}`)).pathname;
     const paths = path.split('/');
     const filename = paths[paths.length - 1];
     return reverseProxy(ctx, path, () => ctx.set('content-disposition', `filename="${filename}"`));
