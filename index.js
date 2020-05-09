@@ -7,6 +7,8 @@ const app = new Koa();
 const router = new Router();
 const illustCache = new NodeCache({ stdTTL: 600, checkperiod: 60, useClones: false });
 
+const { PROTOCOL } = process.env;
+
 const pHeaders = {
   Referer: 'https://www.pixiv.net',
   'User-Agent':
@@ -32,11 +34,12 @@ const reverseProxy = async (ctx, path, okCb) => {
 router
   .get('/', ctx => {
     const baseURL = (() => {
+      if (PROTOCOL) ctx.URL.protocol = PROTOCOL;
       const paths = ctx.URL.href.split('/');
       paths.pop();
       return paths.join('/');
     })();
-    ctx.set('cache-control', 'max-age=3600');
+    ctx.set('cache-control', 'no-cache');
     ctx.body = require('./pages/index')(baseURL);
   })
   .get('/favicon.ico', ctx => {
