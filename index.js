@@ -8,6 +8,11 @@ const router = new Router();
 const illustCache = new NodeCache({ stdTTL: 600, checkperiod: 60, useClones: false });
 
 const { PROTOCOL } = process.env;
+const START_TIME = Date.now();
+let requestNum = 0;
+let bandwidth = 0;
+
+const index = require('./pages/index');
 
 const pHeaders = {
   Referer: 'https://www.pixiv.net',
@@ -25,6 +30,8 @@ const reverseProxy = async (ctx, path, okCb) => {
   ctx.status = status;
   ['content-type', 'content-length'].forEach(k => headers[k] && ctx.set(k, headers[k]));
   if (status == 200) {
+    requestNum++;
+    bandwidth += parseInt(headers['content-length']) || 0;
     ctx.body = data;
     ['last-modified', 'expires', 'cache-control'].forEach(k => headers[k] && ctx.set(k, headers[k]));
     if (typeof okCb === 'function') okCb();
@@ -40,7 +47,7 @@ router
       return paths.join('/');
     })();
     ctx.set('cache-control', 'no-cache');
-    ctx.body = require('./pages/index')(baseURL);
+    ctx.body = index({ baseURL, uptime: Date.now() - START_TIME, requestNum, bandwidth });
   })
   .get('/favicon.ico', ctx => {
     return get('https://www.pixiv.net/favicon.ico', {
