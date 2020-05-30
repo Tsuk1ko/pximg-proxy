@@ -4,13 +4,15 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "create:jsonstorage": "node tools/createJsonstorage.js"
   },
   "dependencies": {
     "axios": "^0.19.2",
     "human-format": "^0.10.1",
     "koa": "^2.12.0",
     "koa-router": "^8.0.8",
+    "lodash": "^4.17.15",
     "moment": "^2.26.0",
     "moment-duration-format": "^2.3.2",
     "node-cache": "^5.1.0"
