@@ -30,7 +30,7 @@ if (Jsonstorage.enable()) {
             uploadTimeout = setTimeout(() => {
               uploadTimeout = null;
               Jsonstorage.put(analytics).catch(() => console.error('update jsonstorage error'));
-            }, 1000);
+            }, 60 * 1000);
           }
           return Reflect.set(...args);
         },
