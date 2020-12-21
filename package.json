@@ -3,18 +3,19 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "private": true,
   "scripts": {
     "start": "node index.js",
     "create:jsonstorage": "node tools/createJsonstorage.js"
   },
   "dependencies": {
-    "axios": "^0.19.2",
-    "human-format": "^0.10.1",
-    "koa": "^2.12.0",
-    "koa-router": "^8.0.8",
-    "lodash": "^4.17.19",
-    "moment": "^2.26.0",
+    "axios": "^0.21.0",
+    "human-format": "^0.11.0",
+    "koa": "^2.13.0",
+    "koa-router": "^10.0.0",
+    "lodash": "^4.17.20",
+    "moment": "^2.29.1",
     "moment-duration-format": "^2.3.2",
-    "node-cache": "^5.1.0"
+    "node-cache": "^5.1.2"
   }
 }
