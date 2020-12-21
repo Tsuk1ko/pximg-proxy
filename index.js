@@ -10,6 +10,7 @@ const router = new Router();
 const illustCache = new NodeCache({ stdTTL: 600, checkperiod: 60, useClones: false });
 
 const { PROTOCOL } = process.env;
+const PORT = process.env.PORT || 8080;
 
 let uploadTimeout = null;
 let analytics = {
@@ -124,7 +125,6 @@ router
   })
   .get(/.*/, ctx => reverseProxy(ctx, ctx.path));
 
-app
-  .use(router.routes())
-  .use(router.allowedMethods())
-  .listen(process.env.PORT || 8080);
+app.use(router.routes()).use(router.allowedMethods()).listen(PORT);
+
+console.log(`Server is running at http://localhost:${PORT}`);
