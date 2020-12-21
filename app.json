@@ -1,0 +1,16 @@
+{
+  "name": "Pximg Proxy",
+  "description": "A reverse proxy service for i.pximg.net",
+  "repository": "https://github.com/Tsuk1ko/heroku-pximg-proxy",
+  "keywords": ["pixiv", "pximg", "illust", "reverse proxy"],
+  "env": {
+    "PROTOCOL": {
+      "description": "Specify the protocol of example URLs on index page. It may be useful when you are using a HTTPS CDN.",
+      "required": false
+    },
+    "JSONSTORAGE": {
+      "description": "JsonStorage (https://jsonstorage.net/) ID. It will be used to store analytics data. You can get one by running `npm run create:jsonstorage` on local.",
+      "required": false
+    }
+  }
+}
