@@ -4,6 +4,7 @@ const Koa = require('koa');
 const Router = require('koa-router');
 const NodeCache = require('node-cache');
 const Jsonstorage = require('./src/jsonstorage');
+const Jsonbox = require('./src/jsonbox');
 
 const app = new Koa();
 const router = new Router();
@@ -19,8 +20,10 @@ let analytics = {
   bandwidth: 0,
 };
 
-if (Jsonstorage.enable()) {
-  Jsonstorage.get()
+(() => {
+  const JsonDrive = [Jsonbox, Jsonstorage].find(Drive => Drive.enable());
+  if (!JsonDrive) return;
+  JsonDrive.get()
     .then(data => {
       Object.assign(analytics, _.pick(data, Object.keys(analytics)));
       analytics = _.mapValues(analytics, v => parseInt(v) || 0);
@@ -30,16 +33,16 @@ if (Jsonstorage.enable()) {
           if (!uploadTimeout) {
             uploadTimeout = setTimeout(() => {
               uploadTimeout = null;
-              Jsonstorage.put(analytics).catch(() => console.error('update jsonstorage error'));
-            }, 60 * 1000);
+              JsonDrive.put(analytics).catch(() => console.error(`update ${JsonDrive.name} error`));
+            }, 30 * 1000);
           }
           return Reflect.set(...args);
         },
       });
-      console.log('jsonstorage loaded');
+      console.log(`${JsonDrive.name} loaded`);
     })
-    .catch(() => console.error('get jsonstorage error'));
-}
+    .catch(() => console.error(`get ${JsonDrive.name} error`));
+})();
 
 const index = require('./pages/index');
 

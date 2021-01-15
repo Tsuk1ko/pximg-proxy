@@ -6,7 +6,8 @@
   "private": true,
   "scripts": {
     "start": "node index.js",
-    "create:jsonstorage": "node tools/createJsonstorage.js"
+    "create:jsonstorage": "node tools/createJsonstorage.js",
+    "create:jsonbox": "node tools/createJsonbox.js"
   },
   "dependencies": {
     "axios": "^0.21.0",
@@ -16,6 +17,7 @@
     "lodash": "^4.17.20",
     "moment": "^2.29.1",
     "moment-duration-format": "^2.3.2",
-    "node-cache": "^5.1.2"
+    "node-cache": "^5.1.2",
+    "uuid": "^8.3.2"
   }
 }
