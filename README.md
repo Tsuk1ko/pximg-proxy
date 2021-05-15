@@ -5,4 +5,3 @@
 ## ENV
 
 - `PROTOCOL` - Specify the protocol of example URLs on index page. It may be useful when you are using a HTTPS CDN.
-- `JSONBOX` - It will be used to store analytics data. You can get one by running `npm run create:jsonbox` on local.

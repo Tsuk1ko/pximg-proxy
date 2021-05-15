@@ -3,8 +3,6 @@ const { get } = require('axios');
 const Koa = require('koa');
 const Router = require('koa-router');
 const NodeCache = require('node-cache');
-const Jsonstorage = require('./src/jsonstorage');
-const Jsonbox = require('./src/jsonbox');
 
 const app = new Koa();
 const router = new Router();
@@ -12,37 +10,6 @@ const illustCache = new NodeCache({ stdTTL: 600, checkperiod: 60, useClones: fal
 
 const { PROTOCOL } = process.env;
 const PORT = process.env.PORT || 8080;
-
-let uploadTimeout = null;
-let analytics = {
-  startTime: Date.now(),
-  requestNum: 0,
-  bandwidth: 0,
-};
-
-(() => {
-  const JsonDrive = [Jsonbox, Jsonstorage].find(Drive => Drive.enable());
-  if (!JsonDrive) return;
-  JsonDrive.get()
-    .then(data => {
-      Object.assign(analytics, _.pick(data, Object.keys(analytics)));
-      analytics = _.mapValues(analytics, v => parseInt(v) || 0);
-      if (!analytics.startTime) analytics.startTime = Date.now();
-      analytics = new Proxy(analytics, {
-        set(...args) {
-          if (!uploadTimeout) {
-            uploadTimeout = setTimeout(() => {
-              uploadTimeout = null;
-              JsonDrive.put(analytics).catch(() => console.error(`update ${JsonDrive.name} error`));
-            }, 30 * 1000);
-          }
-          return Reflect.set(...args);
-        },
-      });
-      console.log(`${JsonDrive.name} loaded`);
-    })
-    .catch(() => console.error(`get ${JsonDrive.name} error`));
-})();
 
 const index = require('./pages/index');
 
@@ -62,8 +29,6 @@ const reverseProxy = async (ctx, path, okCb) => {
   ctx.status = status;
   ['content-type', 'content-length'].forEach(k => headers[k] && ctx.set(k, headers[k]));
   if (status == 200) {
-    analytics.requestNum++;
-    analytics.bandwidth += parseInt(headers['content-length']) || 0;
     ctx.body = data;
     ['last-modified', 'expires', 'cache-control'].forEach(k => headers[k] && ctx.set(k, headers[k]));
     if (typeof okCb === 'function') okCb();
@@ -79,12 +44,7 @@ router
       return paths.join('/');
     })();
     ctx.set('cache-control', 'no-cache');
-    ctx.body = index({
-      baseURL,
-      uptime: Date.now() - analytics.startTime,
-      requestNum: analytics.requestNum,
-      bandwidth: analytics.bandwidth,
-    });
+    ctx.body = index({ baseURL });
   })
   .get('/favicon.ico', ctx => {
     return get('https://www.pixiv.net/favicon.ico', {
