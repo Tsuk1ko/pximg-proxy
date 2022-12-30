@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const { get } = require('axios');
 const Koa = require('koa');
 const Router = require('koa-router');
@@ -6,7 +5,7 @@ const NodeCache = require('node-cache');
 
 const app = new Koa();
 const router = new Router();
-const illustCache = new NodeCache({ stdTTL: 600, checkperiod: 60, useClones: false });
+const illustCache = new NodeCache({ stdTTL: 3600, checkperiod: 60, useClones: false });
 
 const { PROTOCOL } = process.env;
 const PORT = process.env.PORT || 8080;
@@ -21,7 +20,7 @@ const pHeaders = {
 
 const reverseProxy = async (ctx, path, okCb) => {
   const { data, status, headers } = await get(path, {
-    baseURL: 'https://i-cf.pximg.net',
+    baseURL: 'https://i.pximg.net',
     headers: pHeaders,
     responseType: 'stream',
     validateStatus: () => true,
@@ -34,6 +33,19 @@ const reverseProxy = async (ctx, path, okCb) => {
     if (typeof okCb === 'function') okCb();
   } else ctx.set('cache-control', 'max-age=3600');
 };
+
+const convertPages = pages =>
+  pages.map(({ image_urls: { medium, large, original } }) => ({
+    mini: large.replace('/600x1200_90/img-master/', '/48x48/custom-thumb/').replace('_master1200.', '_custom1200.'),
+    thumb: large
+      .replace('/600x1200_90/img-master/', '/250x250_80_a2/custom-thumb/')
+      .replace('_master1200.', '_custom1200.'),
+    small: large.replace('/600x1200_90/', '/540x540_70/'),
+    medium,
+    large,
+    regular: large.replace('/c/600x1200_90/', '/'),
+    original,
+  }));
 
 router
   .get('/', ctx => {
@@ -61,30 +73,37 @@ router
         ctx.status = 502;
       });
   })
-  .get(/^(?:\/(mini|original|regular|small|thumb))?\/(\d+)(?:\/(\d+))?/, async ctx => {
+  .get(/^(?:\/(original|regular|large|medium|small|thumb|mini))?\/(\d+)(?:\/(\d+))?/, async ctx => {
     const { 0: size = 'original', 1: pid, 2: p = 0 } = ctx.params;
     let urls = illustCache.get(pid);
     if (!urls) {
       const {
-        data: { error, message, body },
+        data: { error, illust },
         status,
-      } = await get(`https://www.pixiv.net/ajax/illust/${pid}`, {
+      } = await get(`https://api.obfs.dev/api/pixiv/illust?id=${pid}`, {
         headers: pHeaders,
         validateStatus: () => true,
       });
       if (error) {
-        ctx.body = message;
+        ctx.body = error.user_message || error.message || error.reason;
         ctx.status = status;
         ctx.set('cache-control', 'no-cache');
         return;
       }
-      urls = body.urls;
+      const pages = illust.meta_pages.length
+        ? illust.meta_pages
+        : [{ image_urls: { ...illust.image_urls, original: illust.meta_single_page.original_image_url } }];
+      urls = convertPages(pages);
       illustCache.set(pid, urls);
     }
-    const path = new URL(urls[size].replace('_p0', `_p${p}`)).pathname;
-    const paths = path.split('/');
-    const filename = paths[paths.length - 1];
-    return reverseProxy(ctx, path, () => ctx.set('content-disposition', `filename="${filename}"`));
+    try {
+      const path = new URL(urls[p][size]).pathname;
+      const paths = path.split('/');
+      const filename = paths[paths.length - 1];
+      return reverseProxy(ctx, path, () => ctx.set('content-disposition', `filename="${filename}"`));
+    } catch {
+      ctx.status = 404;
+    }
   })
   .get(/.*/, ctx => reverseProxy(ctx, ctx.path));
 
