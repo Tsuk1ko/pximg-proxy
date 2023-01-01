@@ -10,4 +10,4 @@ module.exports = ({ baseURL }) => `<html><head><title>Pximg Proxy</title></head>
 
 3. ${baseURL}/(original|regular|large|medium|small|thumb|mini)/{pid}[/{p}]
    - ${baseURL}/original/12345678   (same as ${baseURL}/12345678)
-   - ${baseURL}/regular/12345678/1  (p1, master1200)`;
+   - ${baseURL}/regular/12345678/1  (p1, master1200)</body></pre></html>`;
