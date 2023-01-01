@@ -1,6 +1,8 @@
-# heroku-pximg-proxy
+# pximg-proxy
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+[![Deploy on heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+
+[Deploy to Glitch](https://glitch.com/~pximg-proxy)
 
 ## ENV
 
