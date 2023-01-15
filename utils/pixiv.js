@@ -1,4 +1,5 @@
 const { get } = require('axios').default;
+const PixivClient = require('./pixivClient');
 
 const { USER_AGENT } = process.env;
 
@@ -29,13 +30,21 @@ const pixivReverseProxy = async (ctx, path, okCb) => {
   } else ctx.set('cache-control', 'max-age=3600');
 };
 
+const pixivClient = new PixivClient(process.env.PIXIV_CLIENT_REFRESH_TOKEN);
+
 /**
  * @param {string} pid
- * @param {{ acceptLanguage?: string }} [param1]
+ * @param {{ language?: string }} [param]
  */
-const getIllustInfo = async (pid, { acceptLanguage } = {}) => {
+const getIllustInfo = async (pid, { language } = {}) => {
+  if (pixivClient.available) {
+    console.log('use client');
+    return pixivClient.illustDetail(pid, language);
+  }
+
   try {
-    const config = acceptLanguage ? { headers: { 'Accept-Language': acceptLanguage } } : undefined;
+    console.log('use api');
+    const config = language ? { headers: { 'Accept-Language': language } } : undefined;
     const { data } = await get(`https://api.obfs.dev/api/pixiv/illust?id=${pid}`, config);
     return data;
   } catch (err) {

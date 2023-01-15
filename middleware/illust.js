@@ -25,7 +25,7 @@ module.exports = async ctx => {
 
   if (!urls) {
     const { error, illust } = await getIllustInfo(pid, {
-      acceptLanguage: ctx.headers['accept-language'],
+      language: ctx.headers['accept-language'],
     }).catch(error => ({ error }));
 
     if (error) {
