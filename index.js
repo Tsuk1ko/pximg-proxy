@@ -1,114 +1,20 @@
-const { get } = require('axios');
 const Koa = require('koa');
 const Router = require('koa-router');
-const NodeCache = require('node-cache');
+const { pixivReverseProxy } = require('./utils/pixiv');
+const indexMiddleware = require('./middleware/index');
+const faviconMiddleware = require('./middleware/favicon');
+const illustMiddleware = require('./middleware/illust');
+
+const PORT = process.env.PORT || 8080;
 
 const app = new Koa();
 const router = new Router();
-const illustCache = new NodeCache({ stdTTL: 3600, checkperiod: 60, useClones: false });
-
-const { PROTOCOL, HOST, USER_AGENT } = process.env;
-const PORT = process.env.PORT || 8080;
-
-const index = require('./pages/index');
-
-const pHeaders = {
-  Referer: 'https://www.pixiv.net',
-};
-if (USER_AGENT) pHeaders['User-Agent'] = USER_AGENT;
-
-const reverseProxy = async (ctx, path, okCb) => {
-  const { data, status, headers } = await get(path, {
-    baseURL: 'https://i.pximg.net',
-    headers: pHeaders,
-    responseType: 'stream',
-    validateStatus: () => true,
-  });
-  ctx.status = status;
-  ['content-type', 'content-length'].forEach(k => headers[k] && ctx.set(k, headers[k]));
-  if (status == 200) {
-    ctx.body = data;
-    ['last-modified', 'expires', 'cache-control'].forEach(k => headers[k] && ctx.set(k, headers[k]));
-    if (typeof okCb === 'function') okCb();
-  } else ctx.set('cache-control', 'max-age=3600');
-};
-
-const convertPages = pages =>
-  pages.map(({ image_urls: { medium, large, original } }) => ({
-    mini: large.replace('/600x1200_90/img-master/', '/48x48/custom-thumb/').replace('_master1200.', '_custom1200.'),
-    thumb: large
-      .replace('/600x1200_90/img-master/', '/250x250_80_a2/custom-thumb/')
-      .replace('_master1200.', '_custom1200.'),
-    small: large.replace('/600x1200_90/', '/540x540_70/'),
-    medium,
-    large,
-    regular: large.replace('/c/600x1200_90/', '/'),
-    original,
-  }));
 
 router
-  .get('/', ctx => {
-    const baseURL = (() => {
-      const url = new URL(ctx.URL.href);
-      if (PROTOCOL) url.protocol = PROTOCOL;
-      if (HOST) {
-        const [hostname, port = ''] = HOST.split(':');
-        url.hostname = hostname;
-        url.port = port;
-      }
-      return url.href.replace(/\/[^/]*?$/, '');
-    })();
-    ctx.set('cache-control', 'no-cache');
-    ctx.body = index({ baseURL });
-  })
-  .get('/favicon.ico', ctx => {
-    return get('https://www.pixiv.net/favicon.ico', {
-      headers: pHeaders,
-      responseType: 'stream',
-    })
-      .then(({ data, status, headers }) => {
-        ctx.body = data;
-        ctx.status = status;
-        ctx.set('cache-control', 'max-age=604800');
-        ['content-length', 'content-type', 'last-modified'].forEach(k => headers[k] && ctx.set(k, headers[k]));
-      })
-      .catch(() => {
-        ctx.status = 502;
-      });
-  })
-  .get(/^(?:\/(original|regular|large|medium|small|thumb|mini))?\/(\d+)(?:\/(\d+))?/, async ctx => {
-    const { 0: size = 'original', 1: pid, 2: p = 0 } = ctx.params;
-    let urls = illustCache.get(pid);
-    if (!urls) {
-      const {
-        data: { error, illust },
-        status,
-      } = await get(`https://api.obfs.dev/api/pixiv/illust?id=${pid}`, {
-        headers: pHeaders,
-        validateStatus: () => true,
-      });
-      if (error) {
-        ctx.body = error.user_message || error.message || error.reason;
-        ctx.status = status;
-        ctx.set('cache-control', 'no-cache');
-        return;
-      }
-      const pages = illust.meta_pages.length
-        ? illust.meta_pages
-        : [{ image_urls: { ...illust.image_urls, original: illust.meta_single_page.original_image_url } }];
-      urls = convertPages(pages);
-      illustCache.set(pid, urls);
-    }
-    try {
-      const path = new URL(urls[p][size]).pathname;
-      const paths = path.split('/');
-      const filename = paths[paths.length - 1];
-      return reverseProxy(ctx, path, () => ctx.set('content-disposition', `filename="${filename}"`));
-    } catch {
-      ctx.status = 404;
-    }
-  })
-  .get(/.*/, ctx => reverseProxy(ctx, ctx.path));
+  .get('/', indexMiddleware)
+  .get('/favicon.ico', faviconMiddleware)
+  .get(/^(?:\/(original|regular|large|medium|small|thumb|mini))?\/(\d+)(?:\/(\d+))?/, illustMiddleware)
+  .get(/.*/, ctx => pixivReverseProxy(ctx, ctx.path));
 
 app.use(router.routes()).use(router.allowedMethods()).listen(PORT);
 
