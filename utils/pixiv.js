@@ -1,5 +1,5 @@
 const { get } = require('axios').default;
-const PixivClient = require('./pixivClient');
+const PixivClient = require('./PixivClient');
 
 const { USER_AGENT } = process.env;
 
