@@ -11,7 +11,7 @@
 - `HOST`  
   Specify the host of example URLs on index page. Can contain port number.
 - `USER_AGENT`  
-  UA used to request Pixiv. If not provided, the default UA of axios will be used.
+  UA used to request Pixiv image. If not provided, the default UA of axios will be used. Normally, it's OK.
 - `PIXIV_CLIENT_REFRESH_TOKEN`  
   Due to the limitations of Pixiv, the ajax API is not available now (see [#8](https://github.com/Tsuk1ko/pximg-proxy/issues/8)).  
   So by default this project use [HibiAPI](https://github.com/mixmoe/HibiAPI)'s public API server to get illust data, but you may also get rate limit error.  
@@ -19,7 +19,7 @@
 
 ## Get Pixiv client refresh token
 
-You can use any packet capturing tool to grab from the pixiv mobile application, or log in using the script provided by this project.
+You can use any packet capturing tool to grab from the Pixiv mobile application, or log in using the script provided by this project.
 
 Here is how to use the login script:
 
