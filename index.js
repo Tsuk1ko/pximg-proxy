@@ -7,16 +7,15 @@ const app = new Koa();
 const router = new Router();
 const illustCache = new NodeCache({ stdTTL: 3600, checkperiod: 60, useClones: false });
 
-const { PROTOCOL } = process.env;
+const { PROTOCOL, HOST, USER_AGENT } = process.env;
 const PORT = process.env.PORT || 8080;
 
 const index = require('./pages/index');
 
 const pHeaders = {
   Referer: 'https://www.pixiv.net',
-  'User-Agent':
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.113 Safari/537.36',
 };
+if (USER_AGENT) pHeaders['User-Agent'] = USER_AGENT;
 
 const reverseProxy = async (ctx, path, okCb) => {
   const { data, status, headers } = await get(path, {
@@ -50,10 +49,14 @@ const convertPages = pages =>
 router
   .get('/', ctx => {
     const baseURL = (() => {
-      if (PROTOCOL) ctx.URL.protocol = PROTOCOL;
-      const paths = ctx.URL.href.split('/');
-      paths.pop();
-      return paths.join('/');
+      const url = new URL(ctx.URL.href);
+      if (PROTOCOL) url.protocol = PROTOCOL;
+      if (HOST) {
+        const [hostname, port = ''] = HOST.split(':');
+        url.hostname = hostname;
+        url.port = port;
+      }
+      return url.href.replace(/\/[^/]*?$/, '');
     })();
     ctx.set('cache-control', 'no-cache');
     ctx.body = index({ baseURL });
