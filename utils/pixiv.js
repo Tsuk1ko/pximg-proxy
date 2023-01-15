@@ -38,12 +38,10 @@ const pixivClient = new PixivClient(process.env.PIXIV_CLIENT_REFRESH_TOKEN);
  */
 const getIllustInfo = async (pid, { language } = {}) => {
   if (pixivClient.available) {
-    console.log('use client');
     return pixivClient.illustDetail(pid, language);
   }
 
   try {
-    console.log('use api');
     const config = language ? { headers: { 'Accept-Language': language } } : undefined;
     const { data } = await get(`https://api.obfs.dev/api/pixiv/illust?id=${pid}`, config);
     return data;
