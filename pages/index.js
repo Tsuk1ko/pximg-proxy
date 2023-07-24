@@ -1,4 +1,7 @@
-module.exports = ({ baseURL }) => `<html><head><title>Pximg Proxy</title></head><body><pre>Usage:
+module.exports = ({ baseURL }) =>
+  process.env.HIDE_INDEX
+    ? ''
+    : `<html><head><title>Pximg Proxy</title></head><body><pre>Usage:
 
 1. ${baseURL}/{path}
    - ${baseURL}/img-original/img/0000/00/00/00/00/00/12345678_p0.png
