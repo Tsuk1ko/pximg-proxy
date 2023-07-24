@@ -11,11 +11,11 @@
 - `HOST`  
   Specify the host of example URLs on index page. Can contain port number.
 - `USER_AGENT`  
-  UA used to request Pixiv image. If not provided, the default UA of axios will be used. Normally, it's OK.
+  User-Agent header for Pixiv request. If not provided, the default UA of axios will be used. Normally, it's OK.
+- `PIXIV_WEB_COOKIE`  
+  Pixiv website cookie, only the PHPSESSID part is required. At least one of `PIXIV_WEB_COOKIE` and `PIXIV_CLIENT_REFRESH_TOKEN` need to be set.
 - `PIXIV_CLIENT_REFRESH_TOKEN`  
-  Due to the limitations of Pixiv, the ajax API is not available now (see [#8](https://github.com/Tsuk1ko/pximg-proxy/issues/8)).  
-  So by default this project use [HibiAPI](https://github.com/mixmoe/HibiAPI)'s public API server to get illust data, but you may also get rate limit error.  
-  You can provide a Pixiv client refresh token to enable this project to directly request the Pixiv client api. **In this case, it is recommended to deploy the service in a stateful container. It is not recommended to use serverless, otherwise it may affect your pixiv account.**
+  You can provide a Pixiv client refresh token to allow it to access the Pixiv client api. **In this case, it is recommended to deploy the service in a stateful container. It is not recommended to use serverless, otherwise it may affect your pixiv account.**
 
 ## Get Pixiv client refresh token
 

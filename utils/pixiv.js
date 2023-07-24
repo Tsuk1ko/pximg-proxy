@@ -1,4 +1,5 @@
 const { get } = require('axios').default;
+const PixivAjax = require('./PixivAjax');
 const PixivClient = require('./PixivClient');
 
 const { USER_AGENT } = process.env;
@@ -7,6 +8,11 @@ const pixivHeaders = {
   Referer: 'https://www.pixiv.net',
 };
 if (USER_AGENT) pixivHeaders['User-Agent'] = USER_AGENT;
+
+const getPixivErrorMsg = error =>
+  String((typeof error === 'string' ? error : error.user_message || error.message || error.reason) || '');
+
+const isPixivRateLimitError = error => /rate limit/i.test(getPixivErrorMsg(error));
 
 /**
  *
@@ -30,28 +36,54 @@ const pixivReverseProxy = async (ctx, path, okCb) => {
   } else ctx.set('cache-control', 'max-age=3600');
 };
 
-const pixivClient = new PixivClient(process.env.PIXIV_CLIENT_REFRESH_TOKEN);
+const pixivClients = [
+  PixivAjax.getClient(process.env.PIXIV_WEB_COOKIE),
+  PixivClient.getClient(process.env.PIXIV_CLIENT_REFRESH_TOKEN),
+].filter(Boolean);
 
 /**
  * @param {string} pid
  * @param {{ language?: string }} [param]
  */
-const getIllustInfo = async (pid, { language } = {}) => {
-  if (pixivClient.available) {
-    return pixivClient.illustDetail(pid, language);
-  }
-
-  try {
-    const config = language ? { headers: { 'Accept-Language': language } } : undefined;
-    const { data } = await get(`https://api.obfs.dev/api/pixiv/illust?id=${pid}`, config);
-    return data;
-  } catch (err) {
-    if (err.response) {
-      throw err.response.data;
-    } else {
-      throw err.message;
+const getIllustPages = async (pid, { language } = {}) => {
+  if (!pixivClients.length) throw new Error('no available api');
+  let error;
+  for (const client of pixivClients) {
+    try {
+      return client.illustPages(pid, language);
+    } catch (e) {
+      if (!isPixivRateLimitError(e)) throw e;
+      error = e;
     }
   }
+  throw error;
 };
 
-module.exports = { pixivHeaders, pixivReverseProxy, getIllustInfo };
+const convertTable = {
+  mini: ['/c/48x48/img-master/', '_square1200'],
+  thumb: ['/c/250x250_80_a2/img-master/', '_square1200'],
+  small: ['/c/360x360_70/img-master/', '_master1200'],
+  medium: ['/c/540x540_70/img-master/', '_master1200'],
+  large: ['/c/600x1200_90/img-master/', '_master1200'],
+  regular: ['/img-master/', '_master1200'],
+};
+
+/**
+ * @param {string} original
+ * @param {string} size
+ */
+const convertPage = (original, size) => {
+  if (size in convertTable) {
+    const [first, second] = convertTable[size];
+    return original.replace('/img-original/', first).replace(/(?<=_p\d+)/, second);
+  }
+  return original;
+};
+
+module.exports = {
+  pixivHeaders,
+  pixivReverseProxy,
+  getIllustPages,
+  convertPage,
+  getPixivErrorMsg,
+};

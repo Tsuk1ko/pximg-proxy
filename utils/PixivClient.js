@@ -5,16 +5,12 @@ const loginLock = new AwaitLock();
 
 module.exports = class PixivClient {
   /**
-   * @param {string} [refreshToken]
+   * @param {string} refreshToken
    */
   constructor(refreshToken) {
     this.api = new PixivApi();
     this.expireTime = 0;
     this.refreshToken = refreshToken;
-  }
-
-  get available() {
-    return !!this.refreshToken;
   }
 
   get loginExpired() {
@@ -39,10 +35,35 @@ module.exports = class PixivClient {
   /**
    * @param {string} id
    * @param {string} [language]
+   * @returns {PixivClientIllust}
    */
   async illustDetail(id, language) {
     await this.login();
     if (language) this.api.setLanguage(language);
-    return this.api.illustDetail(id);
+    try {
+      const { illust } = await this.api.illustDetail(id);
+      if (!illust.title || !illust.user.name) {
+        throw new Error('unexpected illust result');
+      }
+      return illust;
+    } catch (error) {
+      throw error.error || error;
+    }
+  }
+
+  /**
+   * @param {string} id
+   * @param {string} [language]
+   */
+  async illustPages(id, language) {
+    const illust = await this.illustDetail(id, language);
+    if (illust.meta_pages.length) {
+      return illust.meta_pages.map(p => p.image_urls.original);
+    }
+    return [illust.meta_single_page.original_image_url];
+  }
+
+  static getClient(token) {
+    return token ? new PixivClient(token) : null;
   }
 };
