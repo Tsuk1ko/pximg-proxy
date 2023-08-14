@@ -2,8 +2,6 @@
 
 [![Deploy on heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
-[Deploy to Glitch](https://glitch.com/~pximg-proxy)
-
 ## Environment variables
 
 - `PROTOCOL`  
