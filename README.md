@@ -1,7 +1,5 @@
 # pximg-proxy
 
-[![Deploy on heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
-
 ## Environment variables
 
 - `PROTOCOL`  
