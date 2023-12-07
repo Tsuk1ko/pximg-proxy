@@ -4,8 +4,9 @@ WORKDIR /app
 
 COPY . .
 
-RUN mv ./docker/* ./ \
+RUN  mv ./docker/* ./ \
   && bun install \
-  && bun pm cache rm
+  && bun pm cache rm \
+  && chmod -R 777 /app
 
 CMD ["bun", "src/app.ts"]
