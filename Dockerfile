@@ -1,10 +1,11 @@
-# syntax=docker/dockerfile:1
-
-FROM node:16-alpine
+FROM oven/bun:alpine
 
 WORKDIR /app
+
 COPY . .
 
-RUN yarn install --production
+RUN echo "[install]\ndev = false" > bunfig.toml \
+  && bun install \
+  && bun pm cache rm
 
-CMD ["yarn", "start"]
+CMD ["bun", "src/app.ts"]

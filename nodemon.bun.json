@@ -1,0 +1,7 @@
+{
+  "execMap": {
+    "ts": "bun -r dotenv/config"
+  },
+  "watch": ["./src"],
+  "ext": "ts"
+}
