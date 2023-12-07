@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN echo "[install]\ndev = false" > bunfig.toml \
+RUN mv ./docker/* ./ \
   && bun install \
   && bun pm cache rm
 
