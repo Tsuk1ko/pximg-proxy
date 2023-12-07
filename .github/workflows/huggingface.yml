@@ -12,6 +12,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Config readme
+        run: |
+          rm README.md
+          mv README.HF.md README.md
+          git commit -am "chore: config"
       - name: Push to hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
