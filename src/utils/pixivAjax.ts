@@ -1,5 +1,5 @@
-import Axios from 'axios';
 import { env } from './env';
+import { autoFetch } from './common';
 
 export interface PixivAjaxIllust {
   illustId: string;
@@ -42,8 +42,7 @@ export class PixivAjax implements PixivApi {
   }
 
   private async illustDetail(id: string, language?: string): Promise<PixivAjaxIllust> {
-    const { data } = await Axios.get(`https://www.pixiv.net/ajax/illust/${id}`, {
-      validateStatus: () => true,
+    const data = await autoFetch(`https://www.pixiv.net/ajax/illust/${id}`, {
       headers: this.getHeaders(language),
     });
     if (typeof data !== 'object') throw data;
@@ -59,8 +58,7 @@ export class PixivAjax implements PixivApi {
   }
 
   private async illustDetailPages(id: string, language?: string): Promise<PixivAjaxIllustPages> {
-    const { data } = await Axios.get(`https://www.pixiv.net/ajax/illust/${id}/pages`, {
-      validateStatus: () => true,
+    const data = await autoFetch(`https://www.pixiv.net/ajax/illust/${id}/pages`, {
       headers: this.getHeaders(language),
     });
     if (typeof data !== 'object') throw data;

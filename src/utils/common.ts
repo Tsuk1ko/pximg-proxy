@@ -1,23 +1,15 @@
-import Axios from 'axios';
-
-const HAS_FETCH = typeof fetch !== 'undefined';
-
 export const last = <T>(array: T[]) => array[array.length - 1];
 
 export const reverseProxy = async (url: string, headers: Record<string, string>) => {
-  if (HAS_FETCH) {
-    const res = await fetch(url, { headers });
-    return new Response(res.body, res);
+  const res = await fetch(url, { headers });
+  return new Response(res.body, res);
+};
+
+export const autoFetch = async (url: string, init?: RequestInit): Promise<any> => {
+  const res = await fetch(url, init);
+  console.log([...res.headers.entries()]);
+  if (res.headers.get('content-type')?.includes('application/json')) {
+    return res.json();
   }
-  const {
-    data,
-    status,
-    statusText,
-    headers: resHeaders,
-  } = await Axios.get(url, {
-    headers,
-    responseType: 'stream',
-    validateStatus: () => true,
-  });
-  return new Response(data, { status, statusText, headers: resHeaders as any });
+  return res.text();
 };
