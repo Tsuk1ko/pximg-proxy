@@ -7,7 +7,6 @@ export const reverseProxy = async (url: string, headers: Record<string, string>)
 
 export const autoFetch = async (url: string, init?: RequestInit): Promise<any> => {
   const res = await fetch(url, init);
-  console.log([...res.headers.entries()]);
   if (res.headers.get('content-type')?.includes('application/json')) {
     return res.json();
   }
