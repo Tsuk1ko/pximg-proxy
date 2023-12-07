@@ -1,14 +1,13 @@
 import { PixivAjax } from './pixivAjax';
 import { PixivClient } from './pixivClient';
 import { last, reverseProxy } from './common';
+import { env } from './env';
 import type { Context } from 'hono';
-
-const { USER_AGENT } = process.env;
 
 export const pixivHeaders: Record<string, string> = {
   referer: 'https://www.pixiv.net',
 };
-if (USER_AGENT) pixivHeaders['user-agent'] = USER_AGENT;
+if (env.USER_AGENT) pixivHeaders['user-agent'] = env.USER_AGENT;
 
 export const getPixivErrorMsg = (error: any) =>
   String((typeof error === 'string' ? error : error.user_message || error.message || error.reason) || '');
@@ -30,8 +29,8 @@ export const pixivReverseProxy = async (c: Context, url = `https://i.pximg.net${
 };
 
 const pixivClients = [
-  PixivAjax.getClient(process.env.PIXIV_WEB_COOKIE),
-  PixivClient.getClient(process.env.PIXIV_CLIENT_REFRESH_TOKEN),
+  PixivAjax.getClient(env.PIXIV_WEB_COOKIE),
+  PixivClient.getClient(env.PIXIV_CLIENT_REFRESH_TOKEN),
 ].filter(Boolean);
 
 export const getIllustPages = async (pid: string, { language }: { language?: string } = {}) => {

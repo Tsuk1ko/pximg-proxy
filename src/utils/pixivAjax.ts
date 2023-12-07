@@ -1,4 +1,5 @@
 import Axios from 'axios';
+import { env } from './env';
 
 export interface PixivAjaxIllust {
   illustId: string;
@@ -53,7 +54,7 @@ export class PixivAjax implements PixivApi {
   private getHeaders(language?: string) {
     const headers: Record<string, string> = { Cookie: this.cookie };
     if (language) headers['Accept-Language'] = language;
-    if (process.env.USER_AGENT) headers['User-Agent'] = process.env.USER_AGENT;
+    if (env.USER_AGENT) headers['User-Agent'] = env.USER_AGENT;
     return headers;
   }
 

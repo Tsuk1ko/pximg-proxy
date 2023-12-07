@@ -1,16 +1,15 @@
 import { createMiddleware } from 'hono/factory';
-import { env } from 'hono/adapter';
+import { env } from '../utils/env';
 import type { Context } from 'hono';
 
 export const index = createMiddleware(async c => {
   c.header('cache-control', 'no-cache');
-  const { HIDE_INDEX } = env<Env>(c);
-  return HIDE_INDEX ? c.text('') : c.html(renderIndex(getBaseUrl(c)));
+  return env.HIDE_INDEX ? c.text('') : c.html(renderIndex(getBaseUrl(c)));
 });
 
 const getBaseUrl = (c: Context) => {
   const url = new URL(c.req.url);
-  const { PROTOCOL, HOST } = env<Env>(c);
+  const { PROTOCOL, HOST } = env;
   if (PROTOCOL) url.protocol = PROTOCOL;
   if (HOST) {
     const [hostname, port = ''] = HOST.split(':');
