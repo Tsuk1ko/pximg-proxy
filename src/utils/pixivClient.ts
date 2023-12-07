@@ -1,5 +1,6 @@
-import PixivApi from 'pixiv-api-client';
 import AwaitLock from 'await-lock';
+import { PixivApiClient } from './pixivApiClient';
+import type { PixivApi } from './common';
 
 export interface PixivClientIllust {
   id: number;
@@ -25,7 +26,7 @@ export interface PixivClientIllust {
 const loginLock = new AwaitLock();
 
 export class PixivClient implements PixivApi {
-  private readonly api = new PixivApi();
+  private readonly api = new PixivApiClient();
   private expireTime = 0;
 
   public constructor(private readonly refreshToken: string) {}
@@ -48,9 +49,8 @@ export class PixivClient implements PixivApi {
 
   private async illustDetail(id: string, language?: string): Promise<PixivClientIllust> {
     await this.login();
-    if (language) this.api.setLanguage(language);
     try {
-      const { illust } = await this.api.illustDetail(id);
+      const { illust } = await this.api.illustDetail(id, language);
       if (!illust.title || !illust.user.name) {
         throw new Error('unexpected illust result');
       }

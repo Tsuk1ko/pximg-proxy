@@ -1,5 +1,6 @@
 import { env } from './env';
 import { autoFetch } from './common';
+import type { PixivApi } from './common';
 
 export interface PixivAjaxIllust {
   illustId: string;
