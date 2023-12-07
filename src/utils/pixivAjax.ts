@@ -24,21 +24,11 @@ export type PixivAjaxIllustPages = Array<{
   height: number;
 }>;
 
-export class PixivAjax {
+export class PixivAjax implements PixivApi {
   public constructor(private readonly cookie: string) {}
 
   public static getClient(cookie?: string) {
     return cookie ? new PixivAjax(cookie) : null;
-  }
-
-  public async illustDetail(id: string, language?: string): Promise<PixivAjaxIllust> {
-    const { data } = await Axios.get(`https://www.pixiv.net/ajax/illust/${id}`, {
-      validateStatus: () => true,
-      headers: this.getHeaders(language),
-    });
-    if (typeof data !== 'object') throw data;
-    if (data.error) throw data.message;
-    return data.body;
   }
 
   public async illustPages(id: string, language?: string) {
@@ -48,6 +38,16 @@ export class PixivAjax {
       return pages.map(p => p.urls.original);
     }
     return [illust.urls.original];
+  }
+
+  private async illustDetail(id: string, language?: string): Promise<PixivAjaxIllust> {
+    const { data } = await Axios.get(`https://www.pixiv.net/ajax/illust/${id}`, {
+      validateStatus: () => true,
+      headers: this.getHeaders(language),
+    });
+    if (typeof data !== 'object') throw data;
+    if (data.error) throw data.message;
+    return data.body;
   }
 
   private getHeaders(language?: string) {

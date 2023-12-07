@@ -24,7 +24,7 @@ export interface PixivClientIllust {
 
 const loginLock = new AwaitLock();
 
-export class PixivClient {
+export class PixivClient implements PixivApi {
   private readonly api = new PixivApi();
   private expireTime = 0;
 
@@ -38,7 +38,15 @@ export class PixivClient {
     return token ? new PixivClient(token) : null;
   }
 
-  public async illustDetail(id: string, language?: string): Promise<PixivClientIllust> {
+  public async illustPages(id: string, language?: string) {
+    const illust = await this.illustDetail(id, language);
+    if (illust.meta_pages.length) {
+      return illust.meta_pages.map(p => p.image_urls.original);
+    }
+    return [illust.meta_single_page.original_image_url];
+  }
+
+  private async illustDetail(id: string, language?: string): Promise<PixivClientIllust> {
     await this.login();
     if (language) this.api.setLanguage(language);
     try {
@@ -50,14 +58,6 @@ export class PixivClient {
     } catch (error: any) {
       throw error.error || error;
     }
-  }
-
-  public async illustPages(id: string, language?: string) {
-    const illust = await this.illustDetail(id, language);
-    if (illust.meta_pages.length) {
-      return illust.meta_pages.map(p => p.image_urls.original);
-    }
-    return [illust.meta_single_page.original_image_url];
   }
 
   private async login() {

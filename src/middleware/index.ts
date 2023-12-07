@@ -5,7 +5,6 @@ import type { Context } from 'hono';
 export const index = createMiddleware(async c => {
   c.header('cache-control', 'no-cache');
   const { HIDE_INDEX } = env<Env>(c);
-  console.log('HIDE_INDEX: ', HIDE_INDEX);
   return HIDE_INDEX ? c.text('') : c.html(renderIndex(getBaseUrl(c)));
 });
 

@@ -8,6 +8,8 @@
   Specify the host of example URLs on index page. Can contain port number.
 - `USER_AGENT`  
   User-Agent header for Pixiv request. If not provided, the default UA of axios will be used. Normally, it's OK.
+- `HIDE_INDEX`  
+  If you don't want to show a usage help on index, set this to any non-null value.
 - `PIXIV_WEB_COOKIE`  
   Pixiv website cookie, only the PHPSESSID part is required. At least one of `PIXIV_WEB_COOKIE` and `PIXIV_CLIENT_REFRESH_TOKEN` need to be set.
 - `PIXIV_CLIENT_REFRESH_TOKEN`  

@@ -1,38 +1,31 @@
-import Axios from 'axios';
 import { PixivAjax } from './pixivAjax';
 import { PixivClient } from './pixivClient';
+import { last, reverseProxy } from './common';
 import type { Context } from 'hono';
 
 const { USER_AGENT } = process.env;
 
-const last = <T>(array: T[]) => array[array.length - 1];
-
 export const pixivHeaders: Record<string, string> = {
-  Referer: 'https://www.pixiv.net',
+  referer: 'https://www.pixiv.net',
 };
-if (USER_AGENT) pixivHeaders['User-Agent'] = USER_AGENT;
+if (USER_AGENT) pixivHeaders['user-agent'] = USER_AGENT;
 
 export const getPixivErrorMsg = (error: any) =>
   String((typeof error === 'string' ? error : error.user_message || error.message || error.reason) || '');
 
 const isPixivRateLimitError = (error: any) => /rate limit/i.test(getPixivErrorMsg(error));
 
-export const pixivReverseProxy = async (c: Context, url: string) => {
-  console.log('url: ', url);
-  const { data, status, headers } = await Axios.get(url, {
-    headers: pixivHeaders,
-    responseType: 'stream',
-    validateStatus: () => true,
-  });
-  c.status(status);
-  ['content-type', 'content-length'].forEach(k => headers[k] && c.header(k, headers[k]));
-  if (status === 200) {
-    ['last-modified', 'expires', 'cache-control'].forEach(k => headers[k] && c.header(k, headers[k]));
-    c.header('content-disposition', `filename="${last(url.split('/'))}"`);
-    return c.body(data);
-  } else {
-    c.header('cache-control', 'max-age=3600');
-    return c.notFound();
+export const pixivReverseProxy = async (c: Context, url = `https://i.pximg.net${c.req.path}`) => {
+  console.log('      > url', url);
+  try {
+    const res = await reverseProxy(url, pixivHeaders);
+    if (res.status === 200) {
+      res.headers.set('content-disposition', `filename="${last(url.split('/'))}"`);
+    }
+    return res;
+  } catch (error) {
+    c.status(500);
+    c.text(String(error));
   }
 };
 
@@ -46,6 +39,7 @@ export const getIllustPages = async (pid: string, { language }: { language?: str
   let error;
   for (const client of pixivClients) {
     try {
+      console.log('      > use', client.constructor.name);
       return await client.illustPages(pid, language);
     } catch (e) {
       if (!isPixivRateLimitError(e)) throw e;

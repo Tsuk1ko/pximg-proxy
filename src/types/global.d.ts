@@ -10,3 +10,7 @@ type Env = Record<
   | 'PIXIV_CLIENT_REFRESH_TOKEN',
   string | undefined
 >;
+
+interface PixivApi {
+  illustPages: (id: string, language?: string) => Promise<string[]>;
+}
