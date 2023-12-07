@@ -16,7 +16,10 @@ jobs:
         run: |
           rm README.md
           mv README.HF.md README.md
-          git commit -am "chore: config"
+      - name: Commit
+        uses: zwaldowski/git-commit-action@v1
+        with:
+          commit_message: "chore: config"
       - name: Push to hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
