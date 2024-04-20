@@ -18,7 +18,7 @@ module.exports = {
     node: true,
   },
   parser: '@typescript-eslint/parser',
-  extends: ['standard-with-typescript', 'plugin:import/recommended', 'plugin:import/typescript', 'prettier'],
+  extends: ['love', 'plugin:import/recommended', 'plugin:import/typescript', 'prettier'],
   parserOptions: {
     ecmaVersion: 'latest',
     project: './tsconfig.json',
