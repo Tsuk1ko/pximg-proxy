@@ -5,7 +5,6 @@ type Env = Record<
   | 'USER_AGENT'
   | 'HIDE_INDEX'
   | 'PIXIV_WEB_COOKIE'
-  | 'PIXIV_CLIENT_REFRESH_TOKEN'
   | 'PIXIV_CLIENT_REFRESH_TOKEN',
   string | undefined
 >;
